@@ -3,7 +3,9 @@ const app = express();
 const cors = require("cors");
 const connectDB = require("./src/db/connectDB");
 const port = process.env.PORT || 5000;
+const cookieParser = require("cookie-parser");
 const userRoutes = require("./src/routes/userRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 
 app.use(
   cors({
@@ -12,12 +14,16 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 // connect to db
 connectDB();
 
 // user related routes
 app.use("/api/users", userRoutes);
+
+// auth related routes
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Trippie server is running!");

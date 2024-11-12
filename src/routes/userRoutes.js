@@ -12,22 +12,30 @@ router.post("/", async (req, res) => {
 
     // Check if the user already exists
     const isExist = await User.findOne({ email });
-    if (isExist) {
-      return res.status(409).send({ message: "User already exists" });
+
+    if (!isExist && !user.password) {
+      await User.create(user);
+      return res.status(201).send({ message: "User added successfully" });
+    } else if (isExist && !user.password) {
+      return res.status(200).send({ message: "Login" });
     }
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(user.password, saltRounds);
+    if (isExist && user.password) {
+      return res.status(409).send({ message: "User already exists" });
+    } else if (!isExist && user.password) {
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(user.password, salt);
 
-    // Create a new user
-    const newUser = {
-      ...user,
-      password: hashedPassword,
-    };
+      // Create a new user
+      const newUser = {
+        ...user,
+        password: hashedPassword,
+      };
 
-    const result = await User.create(newUser);
-    res.status(201).send({ message: "User added successfully" });
+      await User.create(newUser);
+      return res.status(201).send({ message: "User added successfully" });
+    }
   } catch (error) {
     console.error("Error adding user:", error);
     return res
