@@ -1,10 +1,11 @@
-// // routes/userRoutes.js
+// src/routes/userRoutes.js
 const express = require("express");
+const bcrypt = require("bcrypt");
 const router = express.Router();
 const User = require("../models/User");
-const bcrypt = require("bcrypt");
+const verifyToken = require("../middlewares/verifyToken");
 
-// Add a user to the collection
+// add a new user to the collection
 router.post("/", async (req, res) => {
   try {
     const user = req.body;
@@ -41,6 +42,24 @@ router.post("/", async (req, res) => {
     return res
       .status(500)
       .send({ error: true, message: "Internal Server Error" });
+  }
+});
+
+// get a user role by email
+router.get("/role", verifyToken, async (req, res) => {
+  try {
+    const email = req.query?.email;
+    if (email !== req.decoded?.email) {
+      return res.status(403).send({ message: "Forbidden" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    res.send({ role: user.role });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: error.message });
   }
 });
 

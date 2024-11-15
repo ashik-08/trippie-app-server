@@ -2,17 +2,30 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 
+const generateAccessToken = (user) => {
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "2h" });
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+};
+
 // login route
 router.post("/login", async (req, res) => {
   try {
     const user = req.body;
     console.log("from /api/auth/login -- user:", user);
-    const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "2h",
-    });
-    console.log("from /api/auth/login -- token:", token);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    console.log("from /api/auth/login -- accessToken:", accessToken);
+    console.log("from /api/auth/login -- refreshToken:", refreshToken);
     res
-      .cookie("token", token, {
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      })
+      .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
@@ -20,7 +33,7 @@ router.post("/login", async (req, res) => {
       .send({ success: true });
   } catch (error) {
     console.log(error);
-    return res.send({ error: true, message: error.message });
+    return res.status(500).send({ error: true, message: error.message });
   }
 });
 
@@ -30,7 +43,12 @@ router.post("/logout", async (req, res) => {
     const user = req.body;
     console.log("from /api/auth/logout -- logging out:", user);
     res
-      .clearCookie("token", {
+      .clearCookie("accessToken", {
+        maxAge: 0,
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      })
+      .clearCookie("refreshToken", {
         maxAge: 0,
         secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
@@ -38,7 +56,35 @@ router.post("/logout", async (req, res) => {
       .send({ success: true });
   } catch (error) {
     console.log(error);
-    return res.send({ error: true, message: error.message });
+    return res.status(500).send({ error: true, message: error.message });
+  }
+});
+
+// refresh token route
+router.post("/refresh-token", async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).send({ message: "Refresh token not found" });
+    }
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).send({ message: "Invalid refresh token" });
+      }
+
+      const accessToken = generateAccessToken({ email: user.email });
+      res
+        .cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production" ? true : false,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: true, message: error.message });
   }
 });
 
