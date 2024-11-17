@@ -8,17 +8,14 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
-    required: true,
     unique: true,
     match: /.+\@.+\..+/,
   },
   name: {
     type: String,
-    required: true,
   },
   mobile: {
     type: String,
-    required: true,
   },
   password: {
     type: String,
@@ -36,7 +33,14 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ["user", "admin"],
+    enum: [
+      "user",
+      "admin",
+      "hotel-manager",
+      "bus-operator",
+      "tour-guide",
+      "tour-agent",
+    ],
     default: "user",
   },
 });
