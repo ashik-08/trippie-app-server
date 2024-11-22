@@ -6,23 +6,11 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     default: () => new mongoose.Types.ObjectId(),
   },
-  email: {
-    type: String,
-    unique: true,
-    match: /.+\@.+\..+/,
-  },
-  name: {
-    type: String,
-  },
-  mobile: {
-    type: String,
-  },
-  password: {
-    type: String,
-  },
-  photo: {
-    type: String,
-  },
+  email: String,
+  name: String,
+  mobile: String,
+  password: String,
+  photo: String,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -42,6 +30,17 @@ const userSchema = new Schema({
       "tour-agent",
     ],
     default: "user",
+  },
+  dashboard: {
+    hotelBookings: [{ type: String, ref: "HotelBooking" }],
+    paymentHistory: [{ type: String, ref: "Payment" }],
+    summary: {
+      totalBookings: { type: Number, default: 0 },
+      completedStays: { type: Number, default: 0 },
+      canceledBookings: { type: Number, default: 0 },
+      totalPayments: { type: Number, default: 0 },
+      totalDues: { type: Number, default: 0 },
+    },
   },
 });
 
