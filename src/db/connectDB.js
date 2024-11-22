@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
+// const hotels = require("../../hotels.json");
+// const Hotel = require("../models/Hotel");
+
+// const rooms = require("../../rooms.json");
+// const Room = require("../models/Room");
 
 const connectDB = async () => {
   const { DB_URI, DB_NAME } = process.env;
@@ -18,6 +23,23 @@ const connectDB = async () => {
     console.error("Error connecting to the database:", error.message);
     process.exit(1); // Exit the process with failure
   }
+
+  // const populateDB = async () => {
+  //   try {
+  //     await Hotel.deleteMany({});
+  //     await Hotel.insertMany(hotels);
+  //     console.log("Database populated with hotel data");
+  //     await Room.deleteMany({});
+  //     await Room.insertMany(rooms);
+  //     console.log("Database populated with room data");
+  //     mongoose.connection.close();
+  //   } catch (error) {
+  //     console.error("Error populating database:", error);
+  //     mongoose.connection.close();
+  //   }
+  // };
+
+  // populateDB();
 
   // Connection events
   mongoose.connection.on("connected", () => {
