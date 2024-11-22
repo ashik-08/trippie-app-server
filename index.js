@@ -6,10 +6,12 @@ const port = process.env.PORT || 5000;
 const cookieParser = require("cookie-parser");
 const userRoutes = require("./src/routes/userRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const hotelRoutes = require("./src/routes/hotelRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -24,6 +26,12 @@ app.use("/api/users", userRoutes);
 
 // auth related routes
 app.use("/api/auth", authRoutes);
+
+// hotel related routes
+app.use("/api/hotels", hotelRoutes);
+
+// payment related routes
+app.use("/api/payment", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.send("Trippie server is running!");
