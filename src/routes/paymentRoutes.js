@@ -3,8 +3,10 @@ const router = express.Router();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
+const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const verifyToken = require("../middlewares/verifyToken");
+const { sendBookingConfirmationEmail } = require("../services/emailService");
 
 // Create a payment intent
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
@@ -19,6 +21,8 @@ router.post("/create-payment-intent", verifyToken, async (req, res) => {
 
     res.send({
       clientSecret: paymentIntent.client_secret,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
     });
   } catch (error) {
     console.log(error);
@@ -35,6 +39,7 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
     // Save payment data
     const payment = new Payment({
       paymentId,
+      type,
       amount,
       currency,
       status,
@@ -85,6 +90,23 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
           },
         }
       );
+
+      const hotel = await Hotel.findOne({ hotelId });
+
+      // Send booking confirmation email
+      const bookingDetails = {
+        hotelName: hotel.name,
+        location: hotel.detailedLocation,
+        checkInDate,
+        checkOutDate,
+        roomNumbers,
+        paymentId,
+        totalPrice,
+        bookingAmount,
+        dueAmount,
+      };
+
+      sendBookingConfirmationEmail(userEmail, bookingDetails);
     }
 
     res.status(200).send({ message: "Booking saved successfully" });
