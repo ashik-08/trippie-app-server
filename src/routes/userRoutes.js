@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 const User = require("../models/User");
 const verifyToken = require("../middlewares/verifyToken");
+const verifyRole = require("../middlewares/verifyRole");
 
 // add a new user to the collection
 router.post("/", async (req, res) => {
@@ -60,6 +61,36 @@ router.get("/role", verifyToken, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: error.message });
+  }
+});
+
+// get all users  -- checked
+router.get("/", verifyToken, verifyRole(["admin"]), async (req, res) => {
+  try {
+    const result = await User.find();
+    res.status(200).send(result);
+  } catch (error) {
+    console.error(error);
+    return res.send({ error: true, message: "Internal Server Error" });
+  }
+});
+
+// update a user role
+router.patch("/:id", verifyToken, verifyRole(["admin"]), async (req, res) => {
+  try {
+    const query = { _id: req.params.id };
+    const updatedUser = {
+      $set: {
+        role: req.body.newRole,
+      },
+    };
+    const result = await User.updateOne(query, updatedUser);
+    res.status(200).send(result);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ error: true, message: "Internal Server Error" });
   }
 });
 
