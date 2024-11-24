@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const userRoutes = require("./src/routes/userRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const hotelRoutes = require("./src/routes/hotelRoutes");
+const roomRoutes = require("./src/routes/roomRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 
 app.use(
@@ -29,6 +30,9 @@ app.use("/api/auth", authRoutes);
 
 // hotel related routes
 app.use("/api/hotels", hotelRoutes);
+
+// room related routes
+app.use("/api/rooms", roomRoutes);
 
 // payment related routes
 app.use("/api/payment", paymentRoutes);
