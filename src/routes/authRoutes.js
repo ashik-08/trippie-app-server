@@ -21,14 +21,14 @@ router.post("/login", async (req, res) => {
     console.log("from /api/auth/login -- refreshToken:", refreshToken);
     res
       .cookie("accessToken", accessToken, {
-        httpOnly: false,
+        httpOnly: true,
         secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 2 * 60 * 60 * 1000,
       })
       .cookie("refreshToken", refreshToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
@@ -78,7 +78,7 @@ router.post("/refresh-token", async (req, res) => {
       const newAccessToken = generateAccessToken({ email: user.email });
       res
         .cookie("accessToken", newAccessToken, {
-          httpOnly: false,
+          httpOnly: true,
           secure: process.env.NODE_ENV === "production" ? true : false,
           sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
           maxAge: 2 * 60 * 60 * 1000,
