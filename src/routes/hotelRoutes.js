@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
+const verifyToken = require("../middlewares/verifyToken");
+const verifyRole = require("../middlewares/verifyRole");
 
 // checks if a room is available for booking on the given dates
 const isRoomAvailable = (roomDetail, checkIn, checkOut) => {
@@ -72,7 +74,7 @@ router.get("/", async (req, res) => {
     }
 
     if (location && checkInDate && checkOutDate) {
-      const hotelIds = hotels.map((hotel) => hotel.hotelId);
+      const hotelIds = hotels.map((hotel) => hotel._id);
       const availableHotels = [];
 
       for (const hotelId of hotelIds) {
@@ -84,7 +86,7 @@ router.get("/", async (req, res) => {
         });
 
         if (hasAvailableRoom) {
-          const hotel = hotels.find((hotel) => hotel.hotelId === hotelId);
+          const hotel = hotels.find((hotel) => hotel._id === hotelId);
           availableHotels.push(hotel);
         }
       }
@@ -107,7 +109,7 @@ router.get("/details/:hotelId", async (req, res) => {
   const { checkInDate, checkOutDate } = req.query;
 
   try {
-    const hotel = await Hotel.findOne({ hotelId });
+    const hotel = await Hotel.findById(hotelId);
     if (!hotel) {
       return res.status(200).send({ message: "Hotel not found" });
     }
@@ -135,5 +137,70 @@ router.get("/details/:hotelId", async (req, res) => {
       .send({ error: true, message: "Internal Server Error" });
   }
 });
+
+// Get hotels by hotel manager email
+router.get(
+  "/:email",
+  verifyToken,
+  verifyRole(["hotel-manager"]),
+  async (req, res) => {
+    const { email } = req.params;
+
+    try {
+      const hotel = await Hotel.findOne({ manager: email });
+      return res.status(200).send(hotel);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .send({ error: true, message: "Internal Server Error" });
+    }
+  }
+);
+
+// Add a new hotel
+router.post(
+  "/",
+  verifyToken,
+  verifyRole(["hotel-manager"]),
+  async (req, res) => {
+    const hotelData = req.body;
+
+    try {
+      const hotel = new Hotel(hotelData);
+      const result = await hotel.save();
+      return res.status(201).send(result);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .send({ error: true, message: "Internal Server Error" });
+    }
+  }
+);
+
+// Update an existing hotel
+router.put(
+  "/:id",
+  verifyToken,
+  verifyRole(["hotel-manager"]),
+  async (req, res) => {
+    const { id } = req.params;
+    const hotelData = req.body;
+
+    try {
+      const hotel = await Hotel.findByIdAndUpdate(id, hotelData);
+      if (hotelData.name && hotelData.name !== hotel.name) {
+        await Room.updateMany({ hotelId: id }, { hotelName: hotelData.name });
+      }
+      return res.status(200).send(hotel);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .send({ error: true, message: "Internal Server Error" });
+    }
+  }
+);
 
 module.exports = router;

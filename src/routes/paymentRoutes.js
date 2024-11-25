@@ -6,7 +6,7 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const verifyToken = require("../middlewares/verifyToken");
-const { sendBookingConfirmationEmail } = require("../services/emailService");
+const { sendHotelBookingEmails } = require("../services/hotelEmailService");
 
 // Create a payment intent
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
@@ -69,34 +69,39 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
         dueAmount,
       } = details;
       const roomNumbers = selectedRooms.map((room) => room.roomNumber);
-      await Room.updateMany(
-        { hotelId, "roomDetails.roomNumber": { $in: roomNumbers } },
-        {
-          $push: {
-            "roomDetails.$.bookings": {
-              startDate: checkInDate,
-              endDate: checkOutDate,
-              guestDetails: {
-                name: guestData.name,
-                email: guestData.email,
-                phone: guestData.phone,
+
+      // Loop through each selected room to update its bookings
+      for (const roomNumber of roomNumbers) {
+        await Room.updateOne(
+          { hotelId, "roomDetails.roomNumber": roomNumber },
+          {
+            $push: {
+              "roomDetails.$.bookings": {
+                startDate: checkInDate,
+                endDate: checkOutDate,
+                guestDetails: {
+                  name: guestData.name,
+                  email: guestData.email,
+                  phone: guestData.phone,
+                },
+                bookedBy: userEmail,
+                totalAmount: totalPrice,
+                bookingAmount,
+                dueAmount,
+                paymentId,
               },
-              bookedBy: userEmail,
-              totalAmount: totalPrice,
-              bookingAmount,
-              dueAmount,
-              paymentId,
             },
-          },
-        }
-      );
+          }
+        );
+      }
 
-      const hotel = await Hotel.findOne({ hotelId });
+      const hotel = await Hotel.findById(hotelId);
 
-      // Send booking confirmation email
+      // Send hotel booking confirmation email
       const bookingDetails = {
         hotelName: hotel.name,
-        location: hotel.detailedLocation,
+        location: hotel.location,
+        guestData,
         checkInDate,
         checkOutDate,
         roomNumbers,
@@ -104,9 +109,12 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
         totalPrice,
         bookingAmount,
         dueAmount,
+        userEmail,
+        hotelManager: hotel.manager.split("@")[0],
+        hotelManagerEmail: hotel.manager,
       };
 
-      sendBookingConfirmationEmail(userEmail, bookingDetails);
+      sendHotelBookingEmails(bookingDetails);
     }
 
     res.status(200).send({ message: "Booking saved successfully" });
