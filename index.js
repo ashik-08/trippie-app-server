@@ -17,6 +17,7 @@ app.use(
       "http://localhost:5174",
       "https://travel-with-trippie.web.app",
       "https://travel-with-trippie.firebaseapp.com",
+      "https://trippie-app-client.vercel.app",
     ],
     credentials: true,
   })
