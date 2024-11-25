@@ -12,10 +12,16 @@ const paymentRoutes = require("./src/routes/paymentRoutes");
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://travel-with-trippie.web.app",
+      "https://travel-with-trippie.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 
