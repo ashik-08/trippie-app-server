@@ -6,12 +6,11 @@ const hotelSchema = new Schema({
     type: Schema.Types.ObjectId,
     default: () => new mongoose.Types.ObjectId(),
   },
-  hotelId: String,
   roomsId: [String],
   name: String,
   city: String,
-  smallLocation: String,
-  detailedLocation: String,
+  area: String,
+  location: String,
   starRating: Number,
   images: [String],
   facilities: [String],
@@ -19,6 +18,10 @@ const hotelSchema = new Schema({
   maxRoomPrice: Number,
   aboutUs: String,
   policy: [String],
+  manager: {
+    type: String,
+    ref: "User",
+  },
 });
 
 module.exports = model("Hotel", hotelSchema);

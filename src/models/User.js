@@ -14,21 +14,18 @@ const userSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+    set: (value) => (value instanceof Date ? value : new Date(value)),
+    get: (value) => (value ? value.toISOString().split("T")[0] : null),
   },
   lastSignInTime: {
     type: Date,
     default: Date.now,
+    set: (value) => (value instanceof Date ? value : new Date(value)),
+    get: (value) => (value ? value.toISOString().split("T")[0] : null),
   },
   role: {
     type: String,
-    enum: [
-      "user",
-      "admin",
-      "hotel-manager",
-      "bus-operator",
-      "tour-guide",
-      "tour-agent",
-    ],
+    enum: ["user", "admin", "hotel-manager", "tour-guide", "tour-agent"],
     default: "user",
   },
   dashboard: {
@@ -43,5 +40,8 @@ const userSchema = new Schema({
     },
   },
 });
+
+userSchema.set("toJSON", { getters: true });
+userSchema.set("toObject", { getters: true });
 
 module.exports = model("User", userSchema);

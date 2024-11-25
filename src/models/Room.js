@@ -3,19 +3,39 @@ const { Schema, model } = mongoose;
 
 const roomDetailSchema = new Schema({
   roomNumber: Number,
-  addedDate: Date,
-  availabilityDate: Date,
+  addedDate: {
+    type: Date,
+    set: (value) => (value instanceof Date ? value : new Date(value)),
+    get: (value) => (value ? value.toISOString().split("T")[0] : null),
+  },
+  availabilityDate: {
+    type: Date,
+    set: (value) => (value instanceof Date ? value : new Date(value)),
+    get: (value) => (value ? value.toISOString().split("T")[0] : null),
+  },
   bookings: [
     {
-      startDate: Date,
-      endDate: Date,
+      startDate: {
+        type: Date,
+        set: (value) => (value instanceof Date ? value : new Date(value)),
+        get: (value) => (value ? value.toISOString().split("T")[0] : null),
+      },
+      endDate: {
+        type: Date,
+        set: (value) => (value instanceof Date ? value : new Date(value)),
+        get: (value) => (value ? value.toISOString().split("T")[0] : null),
+      },
+      bookingDate: {
+        type: Date,
+        set: (value) => (value instanceof Date ? value : new Date(value)),
+        get: (value) => (value ? value.toISOString().split("T")[0] : null),
+      },
       guestDetails: {
         name: String,
         email: String,
-        phone: Number,
+        phone: String,
       },
       bookedBy: { type: String, ref: "User" },
-      bookingDate: Date,
       totalAmount: Number,
       bookingAmount: Number,
       dueAmount: Number,
@@ -29,8 +49,9 @@ const roomSchema = new Schema({
     type: Schema.Types.ObjectId,
     default: () => new mongoose.Types.ObjectId(),
   },
-  roomId: String,
   hotelId: String,
+  hotelName: String,
+  hotelManager: String,
   name: String,
   type: String,
   bedType: String,
@@ -40,5 +61,8 @@ const roomSchema = new Schema({
   images: [String],
   roomDetails: [roomDetailSchema],
 });
+
+roomDetailSchema.set("toJSON", { getters: true });
+roomDetailSchema.set("toObject", { getters: true });
 
 module.exports = model("Room", roomSchema);
