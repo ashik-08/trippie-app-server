@@ -9,6 +9,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const hotelRoutes = require("./src/routes/hotelRoutes");
 const roomRoutes = require("./src/routes/roomRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
+const tourAgencyRoutes = require("./src/routes/tourAgencyRoutes");
 
 app.use(
   cors({
@@ -43,6 +44,9 @@ app.use("/api/rooms", roomRoutes);
 
 // payment related routes
 app.use("/api/payment", paymentRoutes);
+
+// tour agency related routes
+app.use("/api/tour-agencies", tourAgencyRoutes);
 
 app.get("/", (req, res) => {
   res.send("Trippie server is running!");
