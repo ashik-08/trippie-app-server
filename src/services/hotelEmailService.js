@@ -1,12 +1,5 @@
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const generateEmailContent = (
   recipientName,
@@ -135,21 +128,24 @@ const generateEmailContent = (
   `;
 };
 
-const sendEmail = (to, subject, htmlContent) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject,
-    html: htmlContent,
-  };
+const sendEmail = async (to, subject, htmlContent) => {
+  try {
+    const msg = {
+      to,
+      from: process.env.SENDGRID_SENDER_EMAIL,
+      subject,
+      html: htmlContent,
+    };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("Error sending email:", error);
-    } else {
-      console.log("Email sent:", info.response);
-    }
-  });
+    // Send the email
+    const response = await sgMail.send(msg);
+    console.log("Email sent successfully:", response);
+  } catch (error) {
+    console.error(
+      "Error occurred during email sending:",
+      error.response ? error.response.body : error
+    );
+  }
 };
 
 const sendHotelBookingEmails = (bookingDetails) => {
