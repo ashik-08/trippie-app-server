@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const TourAgency = require("../models/TourAgency");
+const Agency = require("../models/Agency");
+const Tour = require("../models/Tour");
 const verifyToken = require("../middlewares/verifyToken");
 const verifyRole = require("../middlewares/verifyRole");
 
@@ -9,8 +10,8 @@ router.post("/", verifyToken, verifyRole(["tour-agent"]), async (req, res) => {
   const agencyData = req.body;
 
   try {
-    const newTourAgency = new TourAgency(agencyData);
-    const result = await newTourAgency.save();
+    const newAgency = new Agency(agencyData);
+    const result = await newAgency.save();
     res.status(201).send(result);
   } catch (error) {
     console.log(error);
@@ -30,15 +31,23 @@ router.put(
     const agencyData = req.body;
 
     try {
-      const updatedTourAgency = await TourAgency.findByIdAndUpdate(
-        id,
-        agencyData,
-        { new: true }
-      );
-      if (!updatedTourAgency) {
+      const updatedAgency = await Agency.findByIdAndUpdate(id, agencyData, {
+        new: true,
+      });
+      if (!updatedAgency) {
         return res.status(200).send({ message: "Tour agency not found" });
       }
-      res.status(200).send(updatedTourAgency);
+
+      const tours = await Tour.find({ agencyId: id });
+      if (tours.length > 0) {
+        tours.forEach((tour) => {
+          tour.agencyName = agencyData.name;
+          tour.agencyEmail = agencyData.email;
+          tour.agencyMobile = agencyData.mobile;
+          tour.save();
+        });
+      }
+      res.status(200).send(updatedAgency);
     } catch (error) {
       console.log(error);
       return res
@@ -56,17 +65,13 @@ router.get(
   async (req, res) => {
     const { email } = req.params;
 
-    console.log(email);
-
     try {
-      const tourAgency = await TourAgency.findOne({ agent: email });
-      if (!tourAgency) {
+      const agency = await Agency.findOne({ agent: email });
+      if (!agency) {
         return res.status(200).send({ message: "Tour agency not found" });
       }
 
-      console.log(tourAgency);
-
-      res.status(200).send(tourAgency);
+      res.status(200).send(agency);
     } catch (error) {
       console.log(error);
       return res
