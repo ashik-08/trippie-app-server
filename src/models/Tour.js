@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const moment = require("moment-timezone");
 
 const transportSchema = new Schema({
   transportType: String, // Flight, Bus, Train, etc.
@@ -60,6 +61,29 @@ const tourSchema = new Schema({
     type: Number,
     default: 0,
   },
+});
+
+// Method to update tour status
+tourSchema.methods.updateTourStatus = function () {
+  const now = moment.tz("Asia/Dhaka").toDate();
+  if (this.startDate <= now && this.endDate >= now) {
+    this.tourStatus = "ongoing";
+  } else if (this.endDate < now) {
+    this.tourStatus = "completed";
+  } else {
+    this.tourStatus = "upcoming";
+  }
+};
+
+// Middleware to update tour status after each find or findOne query
+tourSchema.post("find", function (docs) {
+  docs.forEach((doc) => doc.updateTourStatus());
+});
+
+tourSchema.post("findOne", function (doc) {
+  if (doc) {
+    doc.updateTourStatus();
+  }
 });
 
 module.exports = model("Tour", tourSchema);
