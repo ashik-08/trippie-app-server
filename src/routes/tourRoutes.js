@@ -68,12 +68,45 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Get all tours
+router.get("/", async (req, res) => {
+  const { search, sortOrder, selectedType } = req.query;
+
+  try {
+    let query = { tourStatus: "upcoming" };
+
+    if (search) {
+      query.destinations = { $regex: search, $options: "i" };
+    }
+
+    if (selectedType) {
+      query.tourType = selectedType;
+    }
+
+    let tours = await Tour.find(query);
+
+    if (sortOrder === "asc") {
+      tours = tours.sort((a, b) => a.pricePerPerson - b.pricePerPerson);
+    } else if (sortOrder === "desc") {
+      tours = tours.sort((a, b) => b.pricePerPerson - a.pricePerPerson);
+    }
+
+    res.status(200).json(tours);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 // Get all tours by agent email
 router.get("/", verifyToken, verifyRole(["tour-agent"]), async (req, res) => {
   const { email } = req.query;
 
   try {
     const tours = await Tour.find({ agent: email });
+    if (!tours) {
+      return res.status(200).send({ message: "No tours found" });
+    }
+
     // Convert dates to Bangladesh time zone
     tours.forEach((tour) => {
       tour.startDate = moment.tz(tour.startDate, "Asia/Dhaka").format();
