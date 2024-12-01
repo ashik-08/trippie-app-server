@@ -12,7 +12,7 @@ const transportSchema = new Schema({
 
 const itinerarySchema = new Schema({
   day: Number,
-  activities: String,
+  activities: [String],
   meals: [String],
   accommodation: String,
   transport: transportSchema,
@@ -33,19 +33,19 @@ const tourSchema = new Schema({
   maxGroupSize: Number,
   minAge: Number,
   pricePerPerson: Number,
-  inclusions: String,
-  exclusions: String,
+  inclusions: [String],
+  exclusions: [String],
   itinerary: [itinerarySchema],
   images: [String],
-  tourHighlights: String,
-  importantNotes: String,
+  tourHighlights: [String],
+  importantNotes: [String],
   meetingPoint: String,
-  contactInfo: String,
-  agencyName: String,
+  contactInfo: [String],
   agencyId: {
     type: String,
     ref: "Agency",
   },
+  agencyName: String,
   agencyEmail: String,
   agencyMobile: String,
   agent: {
@@ -56,7 +56,29 @@ const tourSchema = new Schema({
     type: String,
     default: "upcoming", // upcoming, ongoing, completed
   },
-  tourBookings: [String],
+  tourBookings: [
+    {
+      participantData: {
+        name: String,
+        email: String,
+        phone: String,
+      },
+      bookedBy: {
+        type: String, //email
+        ref: "User",
+      },
+      bookingDate: {
+        type: Date,
+        set: (value) => (value instanceof Date ? value : new Date(value)),
+        default: Date.now,
+      },
+      totalParticipant: Number,
+      totalAmount: Number,
+      bookingAmount: Number,
+      dueAmount: Number,
+      paymentId: String,
+    },
+  ],
   bookedCount: {
     type: Number,
     default: 0,

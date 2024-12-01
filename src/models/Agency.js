@@ -16,7 +16,13 @@ const agencySchema = new Schema({
   licenseNumber: String,
   description: String,
   website: String,
-  socialMedia: [String],
+  socialMedia: [
+    {
+      platform: String,
+      url: String,
+      _id: false, // Disable automatic _id field
+    },
+  ],
   logo: String,
   agent: {
     type: String, //email

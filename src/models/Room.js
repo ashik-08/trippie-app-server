@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 
 const roomDetailSchema = new Schema({
+  _id: false, // Disable automatic _id field
   roomNumber: Number,
   addedDate: {
     type: Date,
