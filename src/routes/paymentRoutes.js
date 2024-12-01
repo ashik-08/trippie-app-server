@@ -5,8 +5,10 @@ const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
+const Tour = require("../models/Tour");
 const verifyToken = require("../middlewares/verifyToken");
 const { sendHotelBookingEmails } = require("../services/hotelEmailService");
+const { sendTourBookingEmails } = require("../services/tourEmailService");
 
 // Create a payment intent
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
@@ -115,6 +117,56 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
       };
 
       sendHotelBookingEmails(bookingDetails);
+    }
+
+    // update tour bookings if the booking is for a tour
+    if (type === "tour") {
+      const {
+        tourId,
+        totalParticipant,
+        participantData,
+        totalPrice,
+        bookingAmount,
+        dueAmount,
+      } = details;
+      const tour = await Tour.findById(tourId);
+
+      // Update tour bookings array and bookedCount
+      tour.tourBookings.push({
+        participantData,
+        totalParticipant,
+        bookedBy: userEmail,
+        totalAmount: totalPrice,
+        bookingAmount,
+        dueAmount,
+        paymentId,
+      });
+      tour.bookedCount += totalParticipant;
+      await tour.save();
+
+      // Send tour booking confirmation email to agency and participant email addresses
+      const bookingDetails = {
+        tourName: tour.tourName,
+        type: tour.tourType,
+        destinations: tour.destinations,
+        startDate: tour.startDate,
+        endDate: tour.endDate,
+        meetingPoint: tour.meetingPoint,
+        contactInfo: tour.contactInfo,
+        totalParticipant,
+        participantData,
+        agencyName: tour.agencyName,
+        agencyEmail: tour.agencyEmail,
+        agencyMobile: tour.agencyMobile,
+        agent: tour.agent,
+        paymentId,
+        totalPrice,
+        bookingAmount,
+        dueAmount,
+        userEmail,
+      };
+
+      sendTourBookingEmails(bookingDetails);
     }
 
     res.status(200).send({ message: "Booking saved successfully" });

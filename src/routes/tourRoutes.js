@@ -49,18 +49,25 @@ router.put(
   }
 );
 
-// Get a tour by ID
+// Get tour details and agency details by ID
 router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const tour = await Tour.findById(req.params.id);
+    const tour = await Tour.findById(id);
     if (!tour) {
       return res.status(200).send({ message: "Tour not found" });
+    }
+
+    const agency = await Agency.findById(tour.agencyId);
+    if (!agency) {
+      return res.status(200).send({ message: "Agency not found" });
     }
 
     // Convert dates to Bangladesh time zone
     tour.startDate = moment.tz(tour.startDate, "Asia/Dhaka").format();
     tour.endDate = moment.tz(tour.endDate, "Asia/Dhaka").format();
-    res.status(200).send(tour);
+    res.status(200).send({ tour, agency });
   } catch (error) {
     return res
       .status(500)
