@@ -6,9 +6,13 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const Tour = require("../models/Tour");
+const Subscription = require("../models/Subscription");
 const verifyToken = require("../middlewares/verifyToken");
 const { sendHotelBookingEmails } = require("../services/hotelEmailService");
 const { sendTourBookingEmails } = require("../services/tourEmailService");
+const {
+  sendSubscriptionEmail,
+} = require("../services/subscriptionEmailService");
 
 // Create a payment intent
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
@@ -48,6 +52,47 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
       paidBy: userEmail,
     });
     await payment.save();
+
+    // Handle subscription logic
+    if (type === "subscribe" || type === "renew") {
+      const validityStart = new Date(Date.now());
+      let validityEnd = new Date(validityStart);
+      validityEnd.setMonth(validityEnd.getMonth() + 1);
+      validityEnd.setHours(23, 59, 0, 0);
+
+      let subscription;
+      if (type === "subscribe") {
+        subscription = new Subscription({
+          email: userEmail,
+          validityStart,
+          validityEnd,
+          status: "active",
+        });
+      } else if (type === "renew") {
+        subscription = await Subscription.findOne({ email: userEmail });
+        if (!subscription) {
+          return res.status(200).send({ message: "No subscription found!" });
+        }
+
+        const remainingDays = Math.max(
+          0,
+          Math.ceil(
+            (subscription.validityEnd - new Date()) / (1000 * 60 * 60 * 24)
+          )
+        );
+        validityEnd.setDate(validityEnd.getDate() + remainingDays);
+        subscription.validityStart = validityStart;
+        subscription.validityEnd = validityEnd;
+        subscription.status = "active";
+      }
+
+      await subscription.save();
+      sendSubscriptionEmail(userEmail, validityStart, validityEnd, type);
+
+      return res
+        .status(200)
+        .send({ message: "Payment confirmed and subscription updated" });
+    }
 
     // Save booking data
     const booking = new Booking({
