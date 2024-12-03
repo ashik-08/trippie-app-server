@@ -13,6 +13,7 @@ const tourRoutes = require("./src/routes/tourRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
 const subscriptionScheduler = require("./src/schedulers/subscriptionScheduler");
 const guideRoutes = require("./src/routes/guideRoutes");
+const serviceRoutes = require("./src/routes/serviceRoutes");
 
 const port = process.env.PORT || 5000;
 
@@ -61,6 +62,9 @@ app.use("/api/subscription", subscriptionRoutes);
 
 // guide related routes
 app.use("/api/tour-guides", guideRoutes);
+
+// service related routes
+app.use("/api/services", serviceRoutes);
 
 app.get("/", (req, res) => {
   res.send("Trippie server is running!");
