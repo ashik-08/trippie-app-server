@@ -1,8 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const Guide = require("../models/Guide");
+const Service = require("../models/Service");
+const Subscription = require("../models/Subscription");
 const verifyToken = require("../middlewares/verifyToken");
 const verifyRole = require("../middlewares/verifyRole");
+
+// Get all tour guides
+router.get("/", async (req, res) => {
+  const { search } = req.query;
+
+  try {
+    const activeSubscriptions = await Subscription.find({ status: "active" });
+    const activeGuideIds = activeSubscriptions.map((sub) => sub.email);
+
+    const query = {
+      email: { $in: activeGuideIds },
+    };
+
+    if (search) {
+      query.area = { $regex: search, $options: "i" };
+    }
+    const guides = await Guide.find(query);
+    res.status(200).send(guides);
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 // Get guide by email
 router.get(
@@ -55,6 +79,15 @@ router.put(
       if (!guide) {
         return res.status(200).send({ message: "Guide not found!" });
       }
+      const services = await Service.find({ guideId: id });
+
+      if (services.length > 0) {
+        services.forEach((service) => {
+          service.guideName = guideData.guideName;
+          service.save();
+        });
+      }
+
       res.status(200).send(guide);
     } catch (error) {
       console.log("Failed to update guide", error);
