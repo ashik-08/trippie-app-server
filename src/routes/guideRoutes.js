@@ -28,9 +28,25 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get guide by id and services by guide id
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const guide = await Guide.findById(id);
+    if (!guide) {
+      return res.status(200).send({ message: "Guide not found!" });
+    }
+    const services = await Service.find({ guideId: id });
+    res.status(200).send({ guide, services });
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
 // Get guide by email
 router.get(
-  "/:email",
+  "/email/:email",
   verifyToken,
   verifyRole(["tour-guide"]),
   async (req, res) => {
