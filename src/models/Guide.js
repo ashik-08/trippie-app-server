@@ -10,6 +10,7 @@ const guideSchema = new Schema({
   guideName: String,
   email: String,
   mobile: String,
+  nid: String,
   area: [String],
   languages: [String],
   expertise: [String],
