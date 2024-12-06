@@ -8,13 +8,13 @@ const sendSubscriptionEmail = async (
   type
 ) => {
   const subject =
-    type === "subscribed" ? "Subscription Activated" : "Subscription Renewed";
+    type === "subscribe" ? "Subscription Activated" : "Subscription Renewed";
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f4f7fc;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
         <div style="text-align: center;">
           <h2 style="color: #5c6bc0;">${
-            type === "subscribed" ? "Welcome to the Family!" : "Welcome Back!"
+            type === "subscribe" ? "Welcome to the Family!" : "Welcome Back!"
           }</h2>
           <p style="font-size: 18px; color: #757575;">We are excited to have you on board.</p>
         </div>
@@ -24,7 +24,7 @@ const sendSubscriptionEmail = async (
             <strong>Dear User,</strong>
           </p>
           <p style="font-size: 16px; color: #555;">
-            Your subscription has been ${type} successfully.
+            Your subscription has been ${type}d successfully.
           </p>
           <p style="font-size: 16px; color: #555;">
             <strong>Subscription Validity:</strong> <span style="color: #5c6bc0;">${validityStart.toDateString()} to ${validityEnd.toDateString()}</span>
