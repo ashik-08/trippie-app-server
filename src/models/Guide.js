@@ -21,6 +21,34 @@ const guideSchema = new Schema({
   experience: String,
   pricing: String,
   profileImage: String,
+  subscriptionStartDate: Date,
+  subscriptionEndDate: Date,
+  subscriptionStatus: String,
+  appointments: [
+    {
+      appointmentId: String,
+      bookingDate: {
+        type: Date,
+        default: Date.now,
+      },
+      bookedBy: String,
+      startDate: Date,
+      endDate: Date,
+      slot: String,
+      duration: String,
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "rejected"],
+        default: "pending",
+      },
+      guestDetails: {
+        name: String,
+        email: String,
+        mobile: String,
+        partySize: Number,
+      },
+    },
+  ],
 });
 
 module.exports = model("Guide", guideSchema);
