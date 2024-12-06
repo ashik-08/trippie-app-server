@@ -35,7 +35,7 @@ router.get("/:id", async (req, res) => {
   try {
     const guide = await Guide.findById(id);
     if (!guide) {
-      return res.status(200).send({ message: "Guide not found!" });
+      return res.status(404).send({ message: "Guide not found!" });
     }
     const services = await Service.find({ guideId: id });
     res.status(200).send({ guide, services });
