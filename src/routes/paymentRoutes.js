@@ -6,6 +6,7 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const Tour = require("../models/Tour");
+const Guide = require("../models/Guide");
 const Subscription = require("../models/Subscription");
 const verifyToken = require("../middlewares/verifyToken");
 const { sendHotelBookingEmails } = require("../services/hotelEmailService");
@@ -61,6 +62,7 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
       validityEnd.setHours(23, 59, 0, 0);
 
       let subscription;
+      let guide;
       if (type === "subscribe") {
         subscription = new Subscription({
           email: userEmail,
@@ -68,6 +70,20 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
           validityEnd,
           status: "active",
         });
+        // update guide subscription status
+        guide = await Guide.findOne({ email: userEmail });
+        if (guide) {
+          guide.subscriptionStartDate = validityStart;
+          guide.subscriptionEndDate = validityEnd;
+          guide.subscriptionStatus = "active";
+        } else {
+          guide = new Guide({
+            email: userEmail,
+            subscriptionStartDate: validityStart,
+            subscriptionEndDate: validityEnd,
+            subscriptionStatus: "active",
+          });
+        }
       } else if (type === "renew") {
         subscription = await Subscription.findOne({ email: userEmail });
         if (!subscription) {
@@ -84,8 +100,16 @@ router.post("/confirm-booking", verifyToken, async (req, res) => {
         subscription.validityStart = validityStart;
         subscription.validityEnd = validityEnd;
         subscription.status = "active";
+        // update guide subscription status
+        guide = await Guide.findOne({ email: userEmail });
+        if (guide) {
+          guide.subscriptionStartDate = validityStart;
+          guide.subscriptionEndDate = validityEnd;
+          guide.subscriptionStatus = "active";
+        }
       }
 
+      await guide.save();
       await subscription.save();
       sendSubscriptionEmail(userEmail, validityStart, validityEnd, type);
 
