@@ -54,6 +54,7 @@ const tourSchema = new Schema({
   },
   tourStatus: {
     type: String,
+    enum: ["upcoming", "ongoing", "completed"],
     default: "upcoming", // upcoming, ongoing, completed
   },
   tourBookings: [
@@ -97,14 +98,31 @@ tourSchema.methods.updateTourStatus = function () {
   }
 };
 
-// Middleware to update tour status after each find or findOne query
-tourSchema.post("find", function (docs) {
-  docs.forEach((doc) => doc.updateTourStatus());
+// Middleware to update tour status before saving
+tourSchema.pre("save", function (next) {
+  this.updateTourStatus();
+  next();
 });
 
-tourSchema.post("findOne", function (doc) {
+// Middleware to update tour status after each find or findOne query
+tourSchema.post("find", function (docs) {
+  docs.forEach((doc) => {
+    doc.updateTourStatus();
+    doc.save();
+  });
+});
+
+tourSchema.post("findById", function (doc) {
   if (doc) {
     doc.updateTourStatus();
+    doc.save();
+  }
+});
+
+tourSchema.post("findByIdAndUpdate", function (doc) {
+  if (doc) {
+    doc.updateTourStatus();
+    doc.save();
   }
 });
 
