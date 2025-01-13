@@ -107,15 +107,13 @@ const generateEmailContent = (
             ", "
           )}</p>
           
-          <h2>Participant Information</h2>
-          <p><strong>Total Participants:</strong> ${
-            bookingDetails.totalParticipant
-          }</p>
-          
           <h2>Participant Details</h2>
           <p>Name: ${bookingDetails.participantData.name}</p>
           <p>Email: ${bookingDetails.participantData.email}</p>
           <p>Phone: ${bookingDetails.participantData.phone}</p>
+          <p><strong>Total Participants:</strong> ${
+            bookingDetails.totalParticipant
+          }</p>
      
           <h2>Payment Details</h2>
           <p><strong>Payment ID:</strong> ${bookingDetails.paymentId}</p>
