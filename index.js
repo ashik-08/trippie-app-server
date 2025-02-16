@@ -15,6 +15,7 @@ const subscriptionScheduler = require("./src/schedulers/subscriptionScheduler");
 const guideRoutes = require("./src/routes/guideRoutes");
 const serviceRoutes = require("./src/routes/serviceRoutes");
 const appointmentRoutes = require("./src/routes/appointmentRoutes");
+const schedulerRoutes = require("./src/routes/schedulerRoutes");
 
 const port = process.env.PORT || 5000;
 
@@ -69,6 +70,9 @@ app.use("/api/services", serviceRoutes);
 
 // appointment related routes
 app.use("/api/appointments", appointmentRoutes);
+
+// scheduler related routes
+app.use("/api/scheduler", schedulerRoutes);
 
 app.get("/", (req, res) => {
   res.send("Trippie server is running!");
